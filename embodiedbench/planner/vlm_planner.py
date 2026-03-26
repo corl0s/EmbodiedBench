@@ -19,6 +19,11 @@ class VLMPlanner():
         self.system_prompt = system_prompt
         self.examples = examples
         self.n_shot = n_shot
+        # if 'Qwen' in model_name and n_shot > 3:
+        #     logger.info(f"Reducing n_shot from {n_shot} to 3 for stability.")
+        #     self.n_shot = 3
+        # else:
+        #     self.n_shot = n_shot
         self.chat_history = chat_history # whether to includ all the chat history for prompting
         self.set_actions(actions)
         self.model_type = model_type
@@ -152,6 +157,7 @@ class VLMPlanner():
     
     def json_to_action(self, output_text, json_key='executable_plan'):
         try:
+            # print(output_text)
             json_object = json.loads(output_text)
             action = [x[self.action_key] for x in json_object[json_key]]
             if not len(action):
@@ -177,6 +183,60 @@ class VLMPlanner():
             self.output_json_error += 1
             action = -1
         return action
+
+    # def json_to_action(self, output_text, json_key='executable_plan'):
+    #     # print(output_text)
+    #     original_output = output_text # Keep for logging
+    #     try:
+    #         # 1. CLEANING: Remove markdown backticks if present
+    #         output_text = output_text.replace("```json", "").replace("```", "").strip()
+
+    #         # 2. EXTRACTION: Find the content between the first { and the last }
+    #         match = re.search(r'\{.*\}', output_text, re.DOTALL)
+            
+    #         if match:
+    #             output_text = match.group(0)
+    #         else:
+    #             # 3. HEALER: If model skipped the opening '{' (like in your Qwen log)
+    #             # If it starts with "key": it's likely a missing brace
+    #             if output_text.strip().startswith('"'):
+    #                 output_text = "{" + output_text.strip()
+    #             # If it doesn't end with '}', add it
+    #             if not output_text.strip().endswith('}'):
+    #                 output_text = output_text.strip() + "}"
+
+    #         # 4. PARSING
+    #         json_object = json.loads(output_text)
+            
+    #         # 5. RETRIEVAL: Handle if model output a list directly or used the key
+    #         if isinstance(json_object, list):
+    #             plan = json_object
+    #         elif json_key in json_object:
+    #             plan = json_object[json_key]
+    #         else:
+    #             # If it's a flat dict with just action_id
+    #             plan = [json_object]
+
+    #         action = [x[self.action_key] for x in plan if self.action_key in x]
+            
+    #         if not action:
+    #             # Try to find any integer value if the key lookup failed
+    #             action = [int(v) for k,v in json_object.items() if 'id' in k.lower() and isinstance(v, (int, float))]
+
+    #         if not len(action):
+    #             logger.error(f"Empty plan parsed from: {output_text}")
+    #             return -1
+                
+    #         return action
+
+    #     except Exception as e:
+    #         # 6. ULTIMATE REGEX FALLBACK: Just find "action_id": X
+    #         logger.warning(f"JSON Parse failed, falling back to Regex. Error: {e}")
+    #         action_ids = re.findall(r'"action_id":\s*(\d+)', original_output)
+    #         if action_ids:
+    #             return [int(aid) for aid in action_ids]
+    #         return -1
+
 
     
         

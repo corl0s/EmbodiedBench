@@ -1,6 +1,8 @@
 # configs/EB-Navigation.yaml
 model_name: gpt-4o-mini
 model_type: remote
+# model_name: /projectnb/cs598/vishnuav/emalfred_trajectory/fine_tuning/qwen2_5_vl_alfred_lora
+# model_type: local
 down_sample_ratio: 1
 language_only: False
 eval_sets: []

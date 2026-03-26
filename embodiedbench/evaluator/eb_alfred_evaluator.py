@@ -59,9 +59,22 @@ class EB_AlfredEvaluator():
                                           )
             examples = json.load(open(example_path, 'r+')) if self.eval_set != 'long_horizon' else json.load(open(exploration_example_path, 'r+'))
             model_type = self.config.get('model_type', 'remote')
+
+            # if self.config["model_type"] == "local":
+            #     from embodiedbench.planner.local_qwen_planner import LocalQwenPlanner
+
+            #     self.planner = LocalQwenPlanner(
+            #         base_model_id="Qwen/Qwen2.5-VL-7B-Instruct",
+            #         lora_path="/projectnb/cs598/vishnuav/emalfred_trajectory/fine_tuning/qwen2_5_vl_alfred_lora",
+            #         language_skill_set=self.env.language_skill_set,
+            #         system_prompt=system_prompt,
+            #         examples=examples,
+            #         n_shot=self.config["n_shots"]
+            #     )
+            # else:
             self.planner = VLMPlanner(self.model_name, model_type, self.env.language_skill_set, system_prompt, examples, n_shot=self.config['n_shots'], 
-                                            obs_key='head_rgb', chat_history=self.config['chat_history'], language_only=self.config['language_only'],
-                                            use_feedback=self.config.get('env_feedback', True), multistep=self.config.get('multistep', 0), tp=self.config.get('tp', 1))
+                                               obs_key='head_rgb', chat_history=self.config['chat_history'], language_only=self.config['language_only'],
+                                               use_feedback=self.config.get('env_feedback', True), multistep=self.config.get('multistep', 0), tp=self.config.get('tp', 1))
 
             self.evaluate()
             average_json_values(os.path.join(self.env.log_path, 'results'), output_file='summary.json')

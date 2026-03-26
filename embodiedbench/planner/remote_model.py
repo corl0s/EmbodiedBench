@@ -12,9 +12,9 @@ from embodiedbench.planner.planner_config.generation_guide import llm_generation
 from embodiedbench.planner.planner_config.generation_guide_manip import llm_generation_guide_manip, vlm_generation_guide_manip
 from embodiedbench.planner.planner_utils import convert_format_2claude, convert_format_2gemini, ActionPlan_1, ActionPlan, ActionPlan_lang, \
                                              ActionPlan_1_manip, ActionPlan_manip, ActionPlan_lang_manip, fix_json
-
+from lmdeploy.model import ChatTemplateConfig
 temperature = 0
-max_completion_tokens = 2048
+max_completion_tokens = 4096
 remote_url = os.environ.get('remote_url')
 
 class RemoteModel:
@@ -31,9 +31,16 @@ class RemoteModel:
         self.language_only = language_only
         self.task_type = task_type
 
+
+
         if self.model_type == 'local':
-            backend_config = PytorchEngineConfig(session_len=12000, dtype='float16', tp=tp)
-            self.model = pipeline(self.model_name, backend_config=backend_config)
+            chat_template_config = None
+            if "InternVL" in self.model_name:
+                # InternVL3 usually uses the internlm2 template
+                chat_template_config = ChatTemplateConfig(model_name='internvl-internlm2')
+            
+            backend_config = PytorchEngineConfig(session_len=18000, dtype='float16', tp=tp)
+            self.model = pipeline(self.model_name, backend_config=backend_config, chat_template_config=chat_template_config)
         else:
             if "claude" in self.model_name:
                 self.model = anthropic.Anthropic(
